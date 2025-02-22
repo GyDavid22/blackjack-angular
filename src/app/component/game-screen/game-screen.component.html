@@ -1,0 +1,13 @@
+<div class="d-flex overflow-x-auto">
+    <img *ngFor="let card of this.game.hands.BANK.getImageNames(); index as i; first as isFirst"
+        [src]="isFirst && !this.showFirst ? this.backOfCard : card">
+</div>
+{{this.game.hands.BANK.getValue(!this.showFirst)}}
+<div class="d-flex">
+    <button class="btn btn-primary" [disabled]="this.buttonsDisabled" (click)="this.game.hit()">Hit</button>
+    <button class="btn btn-primary" [disabled]="this.buttonsDisabled" (click)="this.game.stand()">Stand</button>
+</div>
+{{this.game.hands.PLAYER.getValue()}}
+<div class="d-flex overflow-x-auto">
+    <img *ngFor="let card of this.game.hands.PLAYER.getImageNames()" [src]="card">
+</div>

@@ -109,7 +109,11 @@ export class Hand {
         return value;
     }
 
+    getImageNames(): string[] {
+        return this.cards.map(c => c.images.png);
+    }
+
     empty(): ICard[] {
-        return this.cards.slice();
+        return this.cards.splice(0);
     }
 }

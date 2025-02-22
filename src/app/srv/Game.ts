@@ -18,8 +18,11 @@ export class Game {
     hands: Record<PLAYERS, Hand>;
     busyState: EventNotifyer<BusyState>;
     roundResult: EventNotifyer<RoundResult>;
-    private isRoundInitialized;
-    private isGameInitialized;
+    uncoverFirst: EventNotifyer<CoverState>;
+    private isRoundInitialized: boolean;
+    private isGameInitialized: boolean;
+    private isFirstRound: boolean;
+    private standSleepMs: number;
     private _currentlyRunning: number = 0;
     private get currentlyRunning(): number {
         return this._currentlyRunning;
@@ -33,7 +36,7 @@ export class Game {
         this._currentlyRunning = val;
     }
 
-    constructor() {
+    constructor(standSleepMs: number) {
         this.deck = new Deck();
         this.hands = {
             'PLAYER': new Hand(),
@@ -42,6 +45,9 @@ export class Game {
         this.isRoundInitialized = this.isGameInitialized = false;
         this.busyState = new EventNotifyer<BusyState>();
         this.roundResult = new EventNotifyer<RoundResult>();
+        this.uncoverFirst = new EventNotifyer<CoverState>();
+        this.isFirstRound = true;
+        this.standSleepMs = standSleepMs;
         (async () => {
             this.currentlyRunning++;
             await this.initGame();
@@ -63,27 +69,37 @@ export class Game {
         this.currentlyRunning--;
     }
 
-    private async initRound() {
+    async initRound() {
         this.currentlyRunning++;
 
         if (this.isRoundInitialized || !this.isGameInitialized) {
             throw new InvalidStateError();
         }
 
+        this.uncoverFirst.notify(CoverState.COVER_FIRST);
+
+        if (this.isFirstRound) {
+            this.isFirstRound = false;
+        } else {
+            await this.deck.returnCards([...this.hands['PLAYER'].empty(), ...this.hands['BANK'].empty()]);
+        }
+
         this.hands.BANK.put(await this.deck.draw(2));
         this.hands.PLAYER.put(await this.deck.draw(2));
+
+        this.isRoundInitialized = true;
 
         const bankValue = this.hands.BANK.getValue();
         const playerValue = this.hands.PLAYER.getValue();
         if (playerValue === 21 && bankValue !== 21) {
             await this.roundOver(RoundResult.BLACKJACK_USER);
         } else if (bankValue === 21 && playerValue !== 21) {
+            this.uncoverFirst.notify(CoverState.UNCOVER_FIRST);
             await this.roundOver(RoundResult.BLACKJACK_BANK);
         } else if (playerValue === 21 && bankValue === 21) {
+            this.uncoverFirst.notify(CoverState.UNCOVER_FIRST);
             await this.roundOver(RoundResult.BLACKJACK_DRAW);
         }
-
-        this.isRoundInitialized = true;
 
         this.currentlyRunning--;
     }
@@ -113,12 +129,15 @@ export class Game {
             throw new InvalidStateError();
         }
 
-        while (this.hands.BANK.getValue() < 17) {
-            await sleep(1000);
-            this.hands.BANK.put(await this.deck.draw(1));
-        }
-        const bankValue = this.hands.BANK.getValue();
+        this.uncoverFirst.notify(CoverState.UNCOVER_FIRST);
+
+        let bankValue = this.hands.BANK.getValue();
         const playerValue = this.hands.PLAYER.getValue();
+        while (bankValue < 17 && bankValue < playerValue) {
+            await sleep(this.standSleepMs);
+            this.hands.BANK.put(await this.deck.draw(1));
+            bankValue = this.hands.BANK.getValue();
+        }
         if (bankValue > 21) {
             await this.roundOver(RoundResult.USER_WIN);
         } else if (playerValue === bankValue) {
@@ -140,10 +159,6 @@ export class Game {
         }
 
         this.roundResult.notify(result);
-
-        await sleep(2000);
-        await this.deck.returnCards([...this.hands['PLAYER'].empty(), ...this.hands['BANK'].empty()]);
-
         this.isRoundInitialized = false;
 
         this.currentlyRunning--;
@@ -152,6 +167,10 @@ export class Game {
 
 export enum BusyState {
     BUSY, FREE
+}
+
+export enum CoverState {
+    UNCOVER_FIRST, COVER_FIRST
 }
 
 class InvalidStateError extends Error { }

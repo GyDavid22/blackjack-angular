@@ -1,10 +1,4 @@
-<div class="w-100 h-100 d-flex align-items-center justify-content-center">
-  <div *ngIf="this.status === 'MAIN'; else gamescreen">
-    <app-main-screen (click)="this.startButtonHandler()"></app-main-screen>
-  </div>
-  <ng-template #gamescreen>
-    <div *ngIf="this.status === 'GAME'">
-      <app-game-screen></app-game-screen>
-    </div>
-  </ng-template>
+<div class="container h-100 d-flex flex-column align-items-center justify-content-center">
+  <app-main-screen *ngIf="this.status === 'MAIN'" (startButtonClick)="this.startButtonHandler()"></app-main-screen>
+  <app-game-screen *ngIf="this.status === 'GAME'"></app-game-screen>
 </div>

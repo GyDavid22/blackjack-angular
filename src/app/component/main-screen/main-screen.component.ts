@@ -8,5 +8,5 @@ import { Component, EventEmitter, Output } from '@angular/core';
 })
 export class MainScreenComponent {
   @Output()
-  click: EventEmitter<void> = new EventEmitter();
+  startButtonClick: EventEmitter<void> = new EventEmitter();
 }

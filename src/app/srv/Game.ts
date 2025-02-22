@@ -133,7 +133,7 @@ export class Game {
 
         let bankValue = this.hands.BANK.getValue();
         const playerValue = this.hands.PLAYER.getValue();
-        while (bankValue < 17 && bankValue < playerValue) {
+        while (bankValue < 17 && bankValue <= playerValue) {
             await sleep(this.standSleepMs);
             this.hands.BANK.put(await this.deck.draw(1));
             bankValue = this.hands.BANK.getValue();

@@ -1,4 +1,4 @@
-<div class="d-flex flex-grow-1 align-items-start overflow-x-scroll overflow-y-hidden">
+<div class="d-flex flex-grow-1 align-items-start overflow-x-scroll overflow-y-hidden mw-100">
     <img class="mh-100 dealer-card"
         *ngFor="let card of this.game.hands.BANK.getImageNames(); index as i; first as isFirst"
         [src]="isFirst && !this.showFirst ? this.backOfCard : card">
@@ -18,6 +18,6 @@
     </div>
     {{this.game.hands.PLAYER.getValue()}}
 </div>
-<div class="d-flex flex-grow-1 align-items-end overflow-x-scroll overflow-y-hidden">
+<div class="d-flex flex-grow-1 align-items-end overflow-x-scroll overflow-y-hidden mw-100">
     <img class="mh-100 player-card" *ngFor="let card of this.game.hands.PLAYER.getImageNames()" [src]="card">
 </div>

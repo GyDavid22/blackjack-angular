@@ -1,13 +1,23 @@
-<div class="d-flex overflow-x-auto">
-    <img *ngFor="let card of this.game.hands.BANK.getImageNames(); index as i; first as isFirst"
+<div class="d-flex flex-grow-1 align-items-start overflow-x-scroll overflow-y-hidden">
+    <img class="mh-100 dealer-card"
+        *ngFor="let card of this.game.hands.BANK.getImageNames(); index as i; first as isFirst"
         [src]="isFirst && !this.showFirst ? this.backOfCard : card">
 </div>
-{{this.game.hands.BANK.getValue(!this.showFirst)}}
-<div class="d-flex">
-    <button class="btn btn-primary" [disabled]="this.buttonsDisabled" (click)="this.game.hit()">Hit</button>
-    <button class="btn btn-primary" [disabled]="this.buttonsDisabled" (click)="this.game.stand()">Stand</button>
+<div class="d-flex flex-column align-items-center justify-content-center">
+    {{this.game.hands.BANK.getValue(!this.showFirst)}}
+    <div class="d-flex">
+        <button class="btn btn-primary" [disabled]="this.buttonsDisabled" (click)="this.game.hit()">Hit</button>
+        <button class="btn btn-primary" [disabled]="this.buttonsDisabled" (click)="this.game.stand()">Stand</button>
+    </div>
+    <div class="d-flex gap-3">
+        <div>Player wins: {{this.game.stats.playerWins}}</div>
+        <div>Player blackjacks: {{this.game.stats.playerBlackjacks}}</div>
+        <div>Busts: {{this.game.stats.dealerWins}}</div>
+        <div>Dealer blackjacks: {{this.game.stats.dealerBlackjacks}}</div>
+        <div>Pushes: {{this.game.stats.pushes}}</div>
+    </div>
+    {{this.game.hands.PLAYER.getValue()}}
 </div>
-{{this.game.hands.PLAYER.getValue()}}
-<div class="d-flex overflow-x-auto">
-    <img *ngFor="let card of this.game.hands.PLAYER.getImageNames()" [src]="card">
+<div class="d-flex flex-grow-1 align-items-end overflow-x-scroll overflow-y-hidden">
+    <img class="mh-100 player-card" *ngFor="let card of this.game.hands.PLAYER.getImageNames()" [src]="card">
 </div>

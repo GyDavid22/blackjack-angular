@@ -19,6 +19,7 @@ export class Game {
     busyState: EventNotifyer<BusyState>;
     roundResult: EventNotifyer<RoundResult>;
     uncoverFirst: EventNotifyer<CoverState>;
+    stats: IGameStats;
     private isRoundInitialized: boolean;
     private isGameInitialized: boolean;
     private isFirstRound: boolean;
@@ -28,7 +29,7 @@ export class Game {
         return this._currentlyRunning;
     }
     private set currentlyRunning(val: number) {
-        if (this._currentlyRunning !== 0 && val === 0) {
+        if (this._currentlyRunning !== 0 && val === 0 && this.isRoundInitialized) {
             this.busyState.notify(BusyState.FREE);
         } else if (this._currentlyRunning === 0 && val !== 0) {
             this.busyState.notify(BusyState.BUSY);
@@ -48,6 +49,13 @@ export class Game {
         this.uncoverFirst = new EventNotifyer<CoverState>();
         this.isFirstRound = true;
         this.standSleepMs = standSleepMs;
+        this.stats = {
+            playerWins: 0,
+            dealerWins: 0,
+            playerBlackjacks: 0,
+            dealerBlackjacks: 0,
+            pushes: 0
+        };
         (async () => {
             this.currentlyRunning++;
             await this.initGame();
@@ -133,7 +141,7 @@ export class Game {
 
         let bankValue = this.hands.BANK.getValue();
         const playerValue = this.hands.PLAYER.getValue();
-        while (bankValue < 17 && bankValue < playerValue) {
+        while (bankValue < 17 && bankValue <= playerValue) {
             await sleep(this.standSleepMs);
             this.hands.BANK.put(await this.deck.draw(1));
             bankValue = this.hands.BANK.getValue();
@@ -158,6 +166,31 @@ export class Game {
             throw new InvalidStateError();
         }
 
+        switch (result) {
+            case RoundResult.BLACKJACK_USER:
+                this.stats.playerBlackjacks++;
+                this.stats.playerWins++;
+                break;
+            case RoundResult.BLACKJACK_BANK:
+                this.stats.dealerBlackjacks++;
+                this.stats.dealerWins++;
+                break;
+            case RoundResult.BLACKJACK_DRAW:
+                this.stats.pushes++;
+                break;
+            case RoundResult.USER_WIN:
+                this.stats.playerWins++;
+                break;
+            case RoundResult.BANK_WIN:
+                this.stats.dealerWins++;
+                break;
+            case RoundResult.DRAW:
+                this.stats.pushes++;
+                break;
+            default:
+                break;
+        }
+
         this.roundResult.notify(result);
         this.isRoundInitialized = false;
 
@@ -171,6 +204,14 @@ export enum BusyState {
 
 export enum CoverState {
     UNCOVER_FIRST, COVER_FIRST
+}
+
+interface IGameStats {
+    playerWins: number,
+    dealerWins: number,
+    playerBlackjacks: number,
+    dealerBlackjacks: number,
+    pushes: number;
 }
 
 class InvalidStateError extends Error { }

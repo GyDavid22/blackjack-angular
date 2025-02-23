@@ -1,4 +1,5 @@
 <div class="container h-100 d-flex flex-column align-items-center justify-content-center">
-  <app-main-screen *ngIf="this.status === 'MAIN'" (startButtonClick)="this.startButtonHandler()"></app-main-screen>
-  <app-game-screen *ngIf="this.status === 'GAME'"></app-game-screen>
+  <app-main-screen class="main-screen-container" *ngIf="this.status === 'MAIN'"
+    (startButtonClick)="this.startButtonHandler()"></app-main-screen>
+  <app-game-screen class="game-screen-container" *ngIf="this.status === 'GAME'"></app-game-screen>
 </div>
